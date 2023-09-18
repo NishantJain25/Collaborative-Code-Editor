@@ -15,7 +15,7 @@ const server = app.listen(process.env.PORT || 3005, () => {
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "https://collabinator.vercel.app",
   },
 });
 
