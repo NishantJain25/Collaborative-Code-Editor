@@ -131,12 +131,33 @@ function Main() {
         setTheme(data.theme);
         setLanguage(data.language);
       });
+      socket.off("editor-changed", (data) => {
+        console.log(data);
+        setCode(data.data);
+      });
+      socket.off("custom-input-changed", (data) => {
+        console.log(data);
+        setCustomInput(data.data);
+      });
+      socket.off("compile", () => {
+        handleCompile();
+      });
+      socket.off("theme-change", ({ data }) => {
+        console.log(data);
+        setTheme(data);
+      });
+      socket.off("language-change", ({ data }) => {
+        console.log(data);
+        setLanguage(data);
+      });
+      socket.off("user-leave",(data) => {
+        console.log("user leave: ", data)
+        dispatch({type: reducerCases.SET_USERS, payload: users.filter((user) => user.userId !== data.userId)})
+      })
     };
   }, [socket]);
 
-  useEffect(() => {
-    console.log("Socket update : ", code);
-  }, [socket]);
+
 
   const onChange = (action, data) => {
     switch (action) {

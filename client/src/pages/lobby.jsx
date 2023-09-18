@@ -19,7 +19,7 @@ function Lobby() {
       console.log("pushing from lobby to login");
       router.push("/login");
     }
-  }, [userInfo]);
+  }, [userInfo, socket]);
 
   const handleClick = (e) => {
     if (index == 0) {

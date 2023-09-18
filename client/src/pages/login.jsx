@@ -96,7 +96,7 @@ function Login() {
             <FcGoogle className="mr-2 text-lg" /> Sign in with Google
           </button>
         </div>
-        <p>Don't have an account? <Link href="/signup" className="font-semibold font-underline hover:font-bold">Sign up</Link></p>
+        <p>Don&apos;t have an account? <Link href="/signup" className="font-semibold font-underline hover:font-bold">Sign up</Link></p>
       </div>
     </div>
   );
