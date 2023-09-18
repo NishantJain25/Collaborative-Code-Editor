@@ -15,7 +15,7 @@ import { reducerCases } from "@/context/constants";
 import reducer from "@/context/StateReducers";
 import { SocketContext } from "@/context/SocketContext";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/utils/FirebaseConfig";
+import { auth, onAuthStateChangeListener } from "@/utils/FirebaseConfig";
 import AccountsBar from "./AccountsBar/AccountsBar";
 
 function Main() {
@@ -35,14 +35,16 @@ function Main() {
   const [{ room, userInfo, users }, dispatch] = useStateProvider();
   const socket = useContext(SocketContext);
 
-  onAuthStateChanged(auth, async (currentUser) => {
-    if (!currentUser) {
-      router.push("/login");
-    } else if (!room) {
-      dispatch({ type: reducerCases.SET_USER_INFO, payload: currentUser });
-      router.push("/lobby");
-    }
-  });
+  useEffect(() => {
+    onAuthStateChangeListener((currentUser) => {
+      if (!currentUser) {
+        router.push("/login");
+      } else if (!room) {
+        dispatch({ type: reducerCases.SET_USER_INFO, payload: currentUser });
+        router.push("/lobby");
+      }
+    });
+  },[])
   useEffect(() => {
     defineTheme("oceanic-next").then((_) =>
       setTheme({ value: "oceanic-next", label: "Oceanic Next" })
