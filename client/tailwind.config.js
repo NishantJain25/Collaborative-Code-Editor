@@ -7,6 +7,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      backgroundColor: {
+        'pastel-blue': "#c6def1",
+        'pastel-green': "#c9e4de",
+      },
       boxShadow: {
         'custom-black': "5px 5px 0 black",
         'slider-shadow': "-10px 0 0 0 rgb(148 163 184 )"

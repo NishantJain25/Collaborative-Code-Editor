@@ -7,21 +7,7 @@ import React, { useEffect } from "react";
 
 
 function index() {
-    const router = useRouter()
-    const [{room},dispatch] = useStateProvider()
-    useEffect(() => {
-		const unsubscribe = onAuthStateChangeListener((user) => {
-			if(!user){
-                router.push('/login')
-            }else if(!room){
-                dispatch({type: reducerCases.SET_USER_INFO, payload: user})
-                router.push('/lobby')
-            }else{
-                router.push('/')
-            }
-		})
-		return unsubscribe
-	}, [])
+    console.log("Inside Index")
     return <Main />
 }
 

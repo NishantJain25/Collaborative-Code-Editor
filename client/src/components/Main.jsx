@@ -14,21 +14,35 @@ import { useStateProvider } from "@/context/StateContext";
 import { reducerCases } from "@/context/constants";
 import reducer from "@/context/StateReducers";
 import { SocketContext } from "@/context/SocketContext";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/utils/FirebaseConfig";
+import AccountsBar from "./AccountsBar/AccountsBar";
 
 function Main() {
   const editorRef = useRef(null);
   const defaultLanguage = "Javascript";
   const [language, setLanguage] = useState(languageOptions[0]);
   const [code, setCode] = useState("");
-  const [theme, setTheme] = useState({ value: "oceanic-next", label: "Oceanic Next" });
+  const [theme, setTheme] = useState({
+    value: "oceanic-next",
+    label: "Oceanic Next",
+  });
   const [processing, setProcessing] = useState(false);
   const [outputDetails, setOutputDetails] = useState(null);
   const [customInput, setCustomInput] = useState("");
   const [currentRoom, setCurrentRoom] = useState(false);
   const router = useRouter();
   const [{ room, userInfo, users }, dispatch] = useStateProvider();
-  const socket = useContext(SocketContext)
+  const socket = useContext(SocketContext);
 
+  onAuthStateChanged(auth, async (currentUser) => {
+    if (!currentUser) {
+      router.push("/login");
+    } else if (!room) {
+      dispatch({ type: reducerCases.SET_USER_INFO, payload: currentUser });
+      router.push("/lobby");
+    }
+  });
   useEffect(() => {
     defineTheme("oceanic-next").then((_) =>
       setTheme({ value: "oceanic-next", label: "Oceanic Next" })
@@ -36,9 +50,10 @@ function Main() {
   }, []);
 
   useEffect(() => {
-    console.log("inside use effect at line 39 in Main: ",code);
+    console.log("inside use effect at line 39 in Main: ", code);
     if (socket) {
       socket.on("new-user", (data) => {
+        console.log(data.users)
         dispatch({ type: reducerCases.SET_USERS, payload: data.users });
         console.log("reached update-state");
         const updateData = {
@@ -66,23 +81,27 @@ function Main() {
       });
 
       socket.on("editor-changed", (data) => {
-        console.log(data)
-        setCode(data.data)
-      })
+        console.log(data);
+        setCode(data.data);
+      });
       socket.on("custom-input-changed", (data) => {
-        console.log(data)
-        setCustomInput(data.data)
-      })
+        console.log(data);
+        setCustomInput(data.data);
+      });
       socket.on("compile", () => {
-        handleCompile()
-      })
-      socket.on("theme-change", ({data}) => {
-        console.log(data)
-        setTheme(data)
-      })
-      socket.on("language-change", ({data}) => {
-        console.log(data)
-        setLanguage(data)
+        handleCompile();
+      });
+      socket.on("theme-change", ({ data }) => {
+        console.log(data);
+        setTheme(data);
+      });
+      socket.on("language-change", ({ data }) => {
+        console.log(data);
+        setLanguage(data);
+      });
+      socket.on("user-leave",(data) => {
+        console.log("user leave: ", data)
+        dispatch({type: reducerCases.SET_USERS, payload: users.filter((user) => user.userId !== data.userId)})
       })
     }
 
@@ -100,7 +119,7 @@ function Main() {
         };
         socket.emit("update-state", updateData);
         console.log("users: ", users);
-      })
+      });
       socket.off("initial-update", ({ data }) => {
         console.log("received updates on joining.");
         console.log(data);
@@ -111,13 +130,13 @@ function Main() {
         setProcessing(data.processing);
         setTheme(data.theme);
         setLanguage(data.language);
-      })
-    }
+      });
+    };
   }, [socket]);
 
   useEffect(() => {
-    console.log("Socket update : ", code)
-  },[socket])
+    console.log("Socket update : ", code);
+  }, [socket]);
 
   const onChange = (action, data) => {
     switch (action) {
@@ -145,7 +164,7 @@ function Main() {
   };
 
   const handleCompile = () => {
-    socket.emit("compile")
+    socket.emit("compile");
     setProcessing(true);
     const formData = {
       language_id: language.id,
@@ -220,15 +239,18 @@ function Main() {
   }, [room]);
   return (
     <div>
-      <div className="action-bar p-4 flex gap-5">
+      <div className="action-bar p-4 flex w-full justify-between items-center">
+        
+        <div className="flex gap-5">
+
         <LanguagesDropdown
           onLanguageChange={onLanguageChange}
           selectedLanguage={language}
         />
         <ThemesDropdown onThemeChange={onThemeChange} selectedTheme={theme} />
-        {users.map((name, index) => (
-          <p key={index}>{name}</p>
-        ))}
+        </div>
+
+        <AccountsBar />
       </div>
       <section className="grid grid-cols-main h-full m-4">
         <CodeEditorWindow

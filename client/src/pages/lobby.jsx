@@ -28,6 +28,7 @@ function Lobby() {
         params: {
           code: room,
           userName: userInfo.displayName,
+          userId: userInfo.uid
         },
       };
       socket.emit("room-message", data);
@@ -37,6 +38,7 @@ function Lobby() {
         params: {
           code: room,
           userName: userInfo.displayName,
+          userId: userInfo.uid
         },
       };
       socket.emit("room-message", data);
@@ -61,16 +63,12 @@ function Lobby() {
       <div className="w-[30%] bg-slate-200 rounded-xl">
         <div className="w-full relative flex items-center justify-center">
           <div
-            className={`slider absolute top-0 left-0 bg-slate-400 w-[50%] h-[50px] rounded-t-xl z-0 translate-x-[${
-              index * 100
-            }%] transition-all duration-300 before:absolute before:h-[10px] before:block before:w-[20px] before:bg-transparent before:rounded-bl-[10px] before:shadow-slider-shadow ${
-              index == 0 ? "before:right-[-20px]" : "before:left-[-20px]"
-            } before:scale-x-[${index * -1}] before:bottom-0`}
+            className={`slider ${index == 1 && 'slider-right'} absolute top-0 left-0 bg-slate-400 w-[50%] h-[50px] rounded-t-xl z-0 transition-all duration-300  before:scale-x-[${index * -1}] `}
           ></div>
           <div
             className={`w-[50%] h-[50px] ${
               index == 0 && "font-semibold"
-            } rounded-t-xl flex justify-center items-center bg-transparent z-10`}
+            } rounded-t-xl flex justify-center items-center bg-transparent z-10 cursor-pointer`}
             onClick={() => setIndex((prev) => 0)}
           >
             <p className={`p-0 text-${index == 0 ? "white" : "slate-400"}`}>
@@ -80,7 +78,7 @@ function Lobby() {
           <div
             className={`w-[50%] h-[50px] ${
               index == 1 && "font-semibold"
-            } rounded-t-xl flex justify-center items-center z-10`}
+            } rounded-t-xl flex justify-center items-center z-10 cursor-pointer`}
             onClick={() => setIndex((prev) => 1)}
           >
             <p className={`p-0 text-${index == 1 ? "white" : "slate-400"}`}>

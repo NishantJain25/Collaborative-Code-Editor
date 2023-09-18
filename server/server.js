@@ -24,7 +24,35 @@ const maxClients = 2;
 
 io.on("connection", (socket) => {
   global.chatSockets = socket;
-  console.log("connected");
+
+  const leave = (socket) => {
+    console.log("inside Leaving");
+    console.log(socket.userId);
+    const room = socket.room;
+
+    if (rooms[room]) {
+      console.log("filtering users");
+      rooms[room] = rooms[room].filter((client) => client !== socket);
+    }
+    socket["room"] = undefined;
+    console.log("reset socket room");
+
+    console.log("emitting to remaining users");
+    try {
+      if (rooms[room].length == 0) {
+        delete rooms[room]
+      } else {
+        rooms[room].forEach((client) => {
+          console.log(socket.userId);
+          client.emit("user-leave", { userId: socket.userId });
+        });
+        console.log("emitted");
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   socket.on("room-message", (data) => {
     const type = data.type;
@@ -33,6 +61,7 @@ io.on("connection", (socket) => {
     const create = (params) => {
       const room = params.code;
       socket.userName = params.userName;
+      socket.userId = params.userId;
       if (Object.keys(rooms).includes(room)) {
         console.log("Room already exists");
         socket.emit("room-error", {
@@ -46,13 +75,16 @@ io.on("connection", (socket) => {
 
       socket.emit("room-joined", {
         room: room,
-        users: [socket.userName],
+        users: [{ name: socket.userName, userId: socket.userId }],
       });
     };
     const join = (params) => {
       const room = params.code;
       const userName = params.userName;
+      const userId = params.userId;
       socket.userName = userName;
+      socket.userId = userId;
+
       if (!Object.keys(rooms).includes(room)) {
         console.log("Room does not exist");
         socket.emit("room-error", {
@@ -60,7 +92,8 @@ io.on("connection", (socket) => {
         });
         return;
       }
-      if (rooms[room].length >= maxClients) {
+
+      if (rooms[room].length >= maxClients && !rooms[room].includes(socket)) {
         console.log("room is full");
         socket.emit("room-error", {
           error: "Room is full",
@@ -68,13 +101,15 @@ io.on("connection", (socket) => {
         return;
       }
 
-      rooms[room].push(socket);
+      if (!rooms[room].includes(socket)) {
+        rooms[room].push(socket);
+      }
       socket["room"] = room;
 
       let users = [];
       rooms[room].forEach((client) => {
         console.log(client.userName);
-        users.push(client.userName);
+        users.push({ name: client.userName, userId: client.userId });
       });
       console.log("joined room: ", users);
       socket.emit("room-joined", {
@@ -89,11 +124,6 @@ io.on("connection", (socket) => {
         }
       });
     };
-    const leave = (params) => {
-      const room = socket.room;
-      rooms[room] = rooms[room].filter((client) => client !== socket);
-      socket["room"] = undefined;
-    };
 
     switch (type) {
       case "create":
@@ -103,7 +133,7 @@ io.on("connection", (socket) => {
         join(params);
         break;
       case "leave":
-        leave(params);
+        leave(socket);
         break;
       default:
         console.log(`Type ${type} not handled`);
@@ -113,62 +143,71 @@ io.on("connection", (socket) => {
 
   socket.on("update-state", (data) => {
     const room = socket.room;
-    console.log(data);
+
     console.log("Sending updates to new user");
     rooms[room].forEach((client) => {
       if (client !== socket) {
-        console.log(client)
+        console.log(client);
         client.emit("initial-update", {
           data: data,
         });
       }
     });
   });
-  
-  socket.on("editor-change", (payload) => {
-    const room = socket.room
-    rooms[room].forEach((client) => {
-      if(client !== socket){
-        console.log("Sending editor changes")
-        client.emit("editor-changed",payload)
-      }
-    })
-  })
-  socket.on("custom-input-change", (payload) => {
-    const room = socket.room
-    rooms[room].forEach((client) => {
-      if(client !== socket){
-        console.log("Sending editor changes")
-        client.emit("custom-input-changed",payload)
-      }
-    })
-  })
-  socket.on("compile", () => {
-    const room = socket.room
-    rooms[room].forEach((client) => {
-      if(client !== socket){
-        client.emit("compile")
-      }
-    })
-  })
-  socket.on("theme-change", (data) => {
-    const room = socket.room
-    console.log("theme change : ", data)
-    rooms[room].forEach((client) => {
-      if(client !== socket){
-        client.emit("theme-change", data )
-      }
-    })
-  })
-  socket.on("language-change", (data) => {
-    const room = socket.room
-    console.log("language change : ", data)
-    rooms[room].forEach((client) => {
-      if(client !== socket){
-        client.emit("language-change", data )
-      }
-    })
-  })
-}
 
-);
+  socket.on("editor-change", (payload) => {
+    const room = socket.room;
+    rooms[room].forEach((client) => {
+      if (client !== socket) {
+        console.log("Sending editor changes");
+        client.emit("editor-changed", payload);
+      }
+    });
+  });
+  socket.on("custom-input-change", (payload) => {
+    const room = socket.room;
+    rooms[room].forEach((client) => {
+      if (client !== socket) {
+        console.log("Sending editor changes");
+        client.emit("custom-input-changed", payload);
+      }
+    });
+  });
+  socket.on("compile", () => {
+    const room = socket.room;
+    rooms[room].forEach((client) => {
+      if (client !== socket) {
+        client.emit("compile");
+      }
+    });
+  });
+  socket.on("theme-change", (data) => {
+    const room = socket.room;
+    console.log("theme change : ", data);
+    rooms[room].forEach((client) => {
+      if (client !== socket) {
+        client.emit("theme-change", data);
+      }
+    });
+  });
+  socket.on("language-change", (data) => {
+    const room = socket.room;
+    console.log("language change : ", data);
+    rooms[room].forEach((client) => {
+      if (client !== socket) {
+        client.emit("language-change", data);
+      }
+    });
+  });
+  socket.on("leave-room", () => {
+    console.log(socket.userId, " leaving");
+    leave(socket);
+    console.log(rooms);
+  });
+  socket.on("disconnect", (reason) => {
+    console.log("disconnect");
+    if (socket["room"]) {
+      leave(socket);
+    }
+  });
+});
