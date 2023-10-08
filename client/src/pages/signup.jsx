@@ -4,7 +4,7 @@ import React from "react";
 function SignUp() {
     return <div className="w-full h-[100vh] flex flex-col justify-center items-center">
     <p className="text-[40px] font-bold mb-6">
-      Login to start Collaborating!
+      Sign Up to start Collaborating!
     </p>
     <div className="flex flex-col w-[30%] p-4">
       <span className="text-lg font-semibold font-[montserrat]]">Email</span>
