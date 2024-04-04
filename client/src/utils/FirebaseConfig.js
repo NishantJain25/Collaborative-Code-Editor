@@ -7,7 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  updateProfile
 } from "firebase/auth";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -31,21 +32,36 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth();
 export const provider = new GoogleAuthProvider()
 
-export const createUser = (email, password) => {
-  if (!email || !password) {
-    console.log("Email and password is required");
+// export const createUser = (email, password) => {
+//   if (!email || !password) {
+//     console.log("Email and password is required");
+//     return;
+//   }
+
+//   createUserWithEmailAndPassword(auth, email, password)
+//     .then((userCredential) => {
+//       const user = userCredential.user;
+//       console.log(user);
+//       return user;
+//     })
+//     .catch((error) => {
+//       return {error: error.message, code: error.code};
+//     });
+// };
+export const createUser = async (email, password, username) => {
+  if (!email || !password || !username) {
+    console.log("Email, password and username are required");
     return;
   }
-
-  createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      console.log(user);
-      return user;
-    })
-    .catch((error) => {
-      return {error: error.message, code: error.code};
-    });
+  const {user} = await createUserWithEmailAndPassword(auth, email, password)
+  await updateProfile(user, {
+    displayName: username
+  })
+ 
+  user.displayName = username
+  console.log(user)
+  return user
+    
 };
 
 export const signIn = async (email, password) => {

@@ -24,7 +24,7 @@ function Login() {
       const { user } = await signIn(email, password);
       console.log(user);
       dispatch({ type: reducerCases.SET_USER_INFO, payload: user });
-      
+      router.push('/lobby')
 
     } catch (error) {
         console.log(error)
@@ -44,7 +44,7 @@ function Login() {
         router.push("/lobby");
       })
       .catch((error) => {
-        alert(error.message);
+        console.log(error.message);
       });
   };
 

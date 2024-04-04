@@ -12,6 +12,7 @@ function Lobby() {
   const router = useRouter();
   const socket = useContext(SocketContext);
   const [{ userInfo }, dispatch] = useStateProvider();
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     console.log(userInfo);
@@ -22,6 +23,7 @@ function Lobby() {
   }, [userInfo, socket]);
 
   const handleClick = (e) => {
+    console.log("Clicked")
     if (index == 0) {
       const data = {
         type: "create",
@@ -53,7 +55,10 @@ function Lobby() {
       router.push("/");
     });
     socket.on("room-error", (data) => {
-      alert(data.error);
+      setError(data.error);
+      setTimeout(() => {
+        setError(null)
+      },3000) 
       setLoading(false);
     });
   };
@@ -94,6 +99,7 @@ function Lobby() {
           />
         </div>
       </div>
+      {error ? (<p className="text-red">{error}</p>) : <></>}
     </div>
   );
 }
